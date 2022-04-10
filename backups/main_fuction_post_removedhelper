@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import helper
-import config
+#import config
 
 #img = cv2.imread('coffee_sample.png')
 
@@ -14,9 +14,95 @@ import config
 # pic = 'hello.jpeg'
 # img = cv2.imread(pic)
 
-pic = 'hello.jpeg'
-#pic = 'scrab2.jpg'
+pic = "hello.jpeg"
 img = cv2.imread(pic)
+
+# Previous Config Variables
+global_coord = [[0,0], [0,0], [0,0], [0,0]]
+click_incr = 0
+abs_incr = 0
+
+done = False
+
+def click_event(event, x, y, flags, params):
+ 
+    # checking for left mouse clicks
+    if event == cv2.EVENT_LBUTTONDOWN:
+        global global_coord 
+        global click_incr
+        global abs_incr
+        global done
+        # displaying the coordinates
+        # on the Shell
+        print(x, ' ', y)
+        global_coord [click_incr] [0] = x
+        global_coord [click_incr] [1] = y
+        click_incr = click_incr + 1
+        print("click_incr:" , click_incr)
+ 
+        # displaying the coordinates
+        # on the image window
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(img, str(x) + ',' +
+                    str(y), (x,y), font,
+                    1, (255, 0, 0), 2)
+        cv2.imshow('image', img)
+
+def click_event_Orig(event, x, y, flags, params):
+    
+    # checking for left mouse clicks
+    #print(x, ' ', y)
+    print("click_incr:" , click_incr)
+    if (event == cv2.EVENT_LBUTTONDOWN):
+    #if (event == False):
+        # displaying the coordinates
+        # on the Shell
+        global_coord [click_incr] [0] = x
+        global_coord [click_incr] [1] = y
+        
+    xa = global_coord[click_incr-1][0]
+    ya = global_coord[click_incr-1][1]
+    xb = global_coord[click_incr][0]
+    yb = global_coord[click_incr][1]
+    color = (0,255,0)
+
+    print(xb, ' ', yb)
+
+    abs_incr = abs_incr+1
+
+    if (abs_incr % 2 == 0):
+            
+        if (click_incr < 3):
+            
+            if (click_incr == 0):
+                pass
+            else:
+                print("draw")
+                cv2.line(img, (xa, ya), (xb, yb), color, 2)        
+            
+            text_coord = str(xb) + ',' + str(yb)
+            #cv2.putText(img, text_coord, (xb+20,yb+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)    
+            cv2.imshow("image", img)
+            click_incr = click_incr + 1
+
+        elif (click_incr == 3 and not(done)):
+            text_coord = str(xb) + ',' + str(yb)
+            cv2.putText(img, text_coord, (xb+20,yb+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
+            cv2.line(img, (xa, ya), (xb, yb), color, 3)    
+            cv2.line(img, (global_coord[0][0], global_coord[0][1]), 
+            (global_coord[3][0], global_coord[3][1]), color, 2) 
+            cv2.imshow("image", img)
+            done = True
+            print("(A)")
+            print("[Press [space] to continue]")
+        else:
+            pass
+
+        
+        print(done)
+
+
+
 
 #img = cv2.resize(img, (1200, 1200))
 # imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -53,8 +139,9 @@ img_string = 'image'
 cv2.imshow(img_string, img)
 
 full_height,full_width,_ = img.shape
+cv2.setMouseCallback(img_string, click_event)
 #helper.manual_warp(img, full_width, full_height)               ### TRACKBAR
-helper.click_corners(img, img_string, full_width, full_height)  ### CORNERS
+#helper.click_corners(img, img_string, full_width, full_height)  ### CORNERS
 while (True):
     k = cv2.waitKey(10)
     if k == 32:
@@ -64,8 +151,8 @@ print("Rect Done [X]")
 
 n_boxes = len(d['level'])
 
-pts = np.asarray(config.global_coord, dtype = "float32")
-warped = helper.four_point_transform(img, pts) # Their code
+pts = np.asarray(global_coord, dtype = "float32")
+warped = helper.four_point_transform(img, pts)
 
 warp_h, warp_w, _ = warped.shape
 
@@ -91,16 +178,15 @@ cp_warped = warped.copy()
 for i in range(15):
     print("i: ", i)
     for j in range(15):
-        print(j)
-        print(wi*(i+1), hi*(j+1))
-        catch = False
-        
-        cv2.rectangle(cp_warped, (hi*j, wi*i), (hi*(j+1), wi*(i+1)), (200, 50, 255), 2)
-        cv2.putText(cp_warped, str(j+1), (hi*j, wi*i+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
-        cv2.imshow("final", cp_warped)
-        cv2.waitKey(10)
-        common.save_img(cp_warped, 'output2.jpg')
-        roi = cp_warped[wi*i:wi*(i+1), hi*j:hi*(j+1)]
+        # print(j)
+        # print(wi*(i+1), hi*(j+1))
+        # catch = False
+        # try:
+        #     cv2.rectangle(cp_warped, (hi*j, wi*i), (hi*(j+1), wi*(i+1)), (200, 50, 255), 1)
+        #     cv2.imshow("final", cp_warped)
+        #     cv2.waitKey(10)
+        #     common.save_img(cp_warped, 'output2.jpg')
+        #     roi = cp_warped[wi*i:wi*(i+1), hi*j:hi*(j+1)]
         # except:
         #     cv2.rectangle(cp_warped, (hi*j, wi*i ), (warp_h-hi*j, warp_w-wi*i), (200, 50, 255), 1)
         #     cv2.imshow("final", cp_warped)
@@ -115,9 +201,9 @@ for i in range(15):
         #     cv2.waitKey(0)
         #     print("CATCH: ", catch)
         # if (j == 14):
+        
         #     cv2.imshow("roi", roi)
         #     cv2.waitKey(0)
-
         roi = cv2.resize(roi, (wi*2, hi*2))
 
         gray = cv2.cvtColor(roi, cv2.COLOR_RGB2GRAY)

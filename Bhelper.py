@@ -13,28 +13,27 @@ def click_event(event, x, y, flags, params):
  
     # checking for left mouse clicks
     #print(x, ' ', y)
-    
+    print("click_incr:" , config.click_incr)
     if (event == cv2.EVENT_LBUTTONDOWN):
     #if (event == False):
         # displaying the coordinates
         # on the Shell
-        print("click_incr:" , config.click_incr)
         config.global_coord [config.click_incr] [0] = x
         config.global_coord [config.click_incr] [1] = y
 
 
-        xa = config.global_coord[config.click_incr-1][0]
-        ya = config.global_coord[config.click_incr-1][1]
-        xb = config.global_coord[config.click_incr][0]
-        yb = config.global_coord[config.click_incr][1]
-        color = (0,255,0)
+    xa = config.global_coord[config.click_incr-1][0]
+    ya = config.global_coord[config.click_incr-1][1]
+    xb = config.global_coord[config.click_incr][0]
+    yb = config.global_coord[config.click_incr][1]
+    color = (0,255,0)
 
-        print(xb, ' ', yb)
+    print(xb, ' ', yb)
 
-        config.abs_incr = config.abs_incr+1
+    config.abs_incr = config.abs_incr+1
 
-        #if (config.abs_incr % 2 == 0):
-                
+    if (config.abs_incr % 2 == 0):
+            
         if (config.click_incr < 3):
             
             if (config.click_incr == 0):
@@ -61,12 +60,12 @@ def click_event(event, x, y, flags, params):
         else:
             pass
 
-            
+        
         print(config.done)
 
 def click_corners(img_in, img_string, full_width_in, full_height_in):
     cv2.setMouseCallback(img_string, click_event)
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
 
     
 
