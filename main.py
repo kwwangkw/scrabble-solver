@@ -5,9 +5,19 @@ import common
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import helper
+import config
 
 #img = cv2.imread('coffee_sample.png')
-img = cv2.imread('bro.png')
+
+
+# pic = 'hello.jpeg'
+# img = cv2.imread(pic)
+
+pic = 'hello.jpeg'
+config.pic = pic
+img = config.img
+
 #img = cv2.resize(img, (1200, 1200))
 # imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -30,53 +40,83 @@ custom_config = '--psm 1 --oem 3 -c tessedit_char_blacklist=0123456789'
 
 #dnp = np.asarray(d)
 
-
-
-
-
 d = pytesseract.image_to_data(img, lang='eng', config=custom_config, output_type=Output.DICT)
 full_width = 0
 full_height = 0
+print(str(full_width) + ", ", str(full_height))
+x_top = 0
+x_bot = 0
+y_top = 0
+y_bot = 0
+
+img_string = 'image'
+cv2.imshow(img_string, img)
 
 full_height,full_width,_ = img.shape
+#helper.manual_warp(img, full_width, full_height)               ### TRACKBAR
+helper.click_corners(img, img_string, full_width, full_height)  ### CORNERS
+while (True):
+    k = cv2.waitKey(10)
+    if k == 32:
+        break
 
-# n_boxes = len(d['level'])
-# print(n_boxes)
+print("Rect Done [X]")
 
-# file1 = open("text_out.txt","w")
-# file1.writelines(d)
-# file1.close()
+n_boxes = len(d['level'])
 
+pts = np.asarray(config.global_coord, dtype = "float32")
+warped = helper.four_point_transform(img, pts)
 
+warp_h, warp_w, _ = warped.shape
 
-# # Board is 15x15
-# for i in range(n_boxes):
-#     (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
-#     #cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    
-#     # cv2.putText(img, str(x), (x+20,y+40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100,100,255))
-#     # cv2.putText(img, str(y), (x+20,y+55), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100,100,255))
-#     # cv2.putText(img, str(w), (x+20,y+70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100,100,255))
-#     # cv2.putText(img, str(h), (x+20,y+85), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100,100,255))
-#     if (w > full_width):
-#         full_width = w
-#     if (h > full_height):
-#         full_height = h
+cv2.imshow("warp", warped)
+print("warp dimensions: ", warped.shape)
+print("(B)")
+print("[Press [space] to continue]")
 
+while (True):
+    k = cv2.waitKey(10)
+    if k == 32:
+        break
 
-print(str(full_width) + ", ", str(full_height))
+print("Loading letter recognition...")
 
-
-wi = math.ceil(full_width/15)
-hi = math.ceil(full_height/15)
+wi = math.floor(warp_w/15)
+hi = math.floor(warp_h/15)
 print(str(wi) + ", ", str(hi))
 
 charar = np.chararray((15, 15))
-
+print("warp dimensions: ", warped.shape)
+cp_warped = warped.copy()
 for i in range(15):
+    print("i: ", i)
     for j in range(15):
-        cv2.rectangle(img, (wi*i, hi*j), (wi*(i+1), hi*(j+1)), (50, 50, 255), 2)
-        roi = img[wi*i:wi*(i+1), hi*j:hi*(j+1)]
+        print(j)
+        print(wi*(i+1), hi*(j+1))
+        catch = False
+        try:
+            cv2.rectangle(cp_warped, (hi*j, wi*i), (hi*(j+1), wi*(i+1)), (200, 50, 255), 1)
+            cv2.imshow("final", cp_warped)
+            cv2.waitKey(10)
+            common.save_img(cp_warped, 'output2.jpg')
+            roi = cp_warped[wi*i:wi*(i+1), hi*j:hi*(j+1)]
+        except:
+            cv2.rectangle(cp_warped, (hi*j, wi*i ), (warp_h-hi*j, warp_w-wi*i), (200, 50, 255), 1)
+            cv2.imshow("final", cp_warped)
+            cv2.waitKey(10)
+            common.save_img(cp_warped, 'output2.jpg')
+            roi = cp_warped[wi*i:warp_w-wi*i, hi*j:warp_h-hi*j]
+            
+            catch = True
+
+        # if (j == 13):
+        #     cv2.imshow("roi", roi)
+        #     cv2.waitKey(0)
+        #     print("CATCH: ", catch)
+        # if (j == 14):
+        
+        #     cv2.imshow("roi", roi)
+        #     cv2.waitKey(0)
         roi = cv2.resize(roi, (wi*2, hi*2))
 
         gray = cv2.cvtColor(roi, cv2.COLOR_RGB2GRAY)
@@ -95,22 +135,24 @@ for i in range(15):
         #print(d)
         char = '_'
         try:
-            char = db['text'][4][0]
+            char = db['text'][4]
         except:
             char = '_'
 
         charar[i][j] = char
         #print(char)
-        # if (i == 0 and j == 5):
-        #     #print(out_below)
-        #     print(db['text'][4][0])
-        #     # plt.imshow(roi)
-        #     # plt.show()
-        # if (i == 0 and j == 6):
-        #     #print(out_below)
-        #     print(db['text'][4][0])
-        #     # plt.imshow(roi)
-        #     # plt.show()
+        # if (i == 0 and j ==  8):
+        #     print(db['text'])
+        #     plt.imshow(roi)
+        #     plt.show()
+        # if (i == 0 and j ==  2):
+        #     print(db['text'][4])
+        #     plt.imshow(roi)
+        #     plt.show()
+        # if (i == 0 and j == 3):
+        #     print(db['text'][4])
+        #     plt.imshow(roi)
+        #     plt.show()
 
 
         #    common.save_img(roi, 'roi.jpg')
@@ -122,4 +164,4 @@ print(charar)
     
 
 
-common.save_img(img, 'output1.jpg')
+common.save_img(cp_warped, 'output1.jpg')
