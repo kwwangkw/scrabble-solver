@@ -81,13 +81,14 @@ while (True):
 
 print("Loading letter recognition...")
 
-wi = math.floor(warp_w/15)
-hi = math.floor(warp_h/15)
+wi = math.ceil(warp_w/15)
+hi = math.ceil(warp_h/15)
 print(str(wi) + ", ", str(hi))
 
 charar = np.chararray((15, 15))
 print("warp dimensions: ", warped.shape)
 cp_warped = warped.copy()
+cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
 for i in range(15):
     print("i: ", i)
     for j in range(15):
@@ -95,12 +96,12 @@ for i in range(15):
         print(wi*(i+1), hi*(j+1))
         catch = False
         
-        cv2.rectangle(cp_warped, (hi*j, wi*i), (hi*(j+1), wi*(i+1)), (200, 50, 255), 2)
-        cv2.putText(cp_warped, str(j+1), (hi*j, wi*i+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
+        cv2.rectangle(cp_warped, (wi*j, hi*i), (wi*(j+1), hi*(i+1)), (200, 50, 255), 1)
+        #cv2.putText(cp_warped, str(j+1), (wi*j, hi*i+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
         cv2.imshow("final", cp_warped)
         cv2.waitKey(10)
         common.save_img(cp_warped, 'output2.jpg')
-        roi = cp_warped[wi*i:wi*(i+1), hi*j:hi*(j+1)]
+        roi = cp_warped[hi*i:hi*(i+1), wi*j:wi*(j+1)]
         # except:
         #     cv2.rectangle(cp_warped, (hi*j, wi*i ), (warp_h-hi*j, warp_w-wi*i), (200, 50, 255), 1)
         #     cv2.imshow("final", cp_warped)

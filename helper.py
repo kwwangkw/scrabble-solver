@@ -41,7 +41,7 @@ def click_event(event, x, y, flags, params):
                 pass
             else:
                 print("draw")
-                cv2.line(config.img, (xa, ya), (xb, yb), color, 2)        
+                cv2.line(config.img, (xa, ya), (xb, yb), color, 1)        
             
             text_coord = str(xb) + ',' + str(yb)
             #cv2.putText(config.img, text_coord, (xb+20,yb+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)    
@@ -49,8 +49,8 @@ def click_event(event, x, y, flags, params):
             config.click_incr = config.click_incr + 1
 
         elif (config.click_incr == 3 and not(config.done)):
-            text_coord = str(xb) + ',' + str(yb)
-            cv2.putText(config.img, text_coord, (xb+20,yb+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
+            #text_coord = str(xb) + ',' + str(yb)
+            #cv2.putText(config.img, text_coord, (xb+20,yb+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
             cv2.line(config.img, (xa, ya), (xb, yb), color, 3)    
             cv2.line(config.img, (config.global_coord[0][0], config.global_coord[0][1]), 
             (config.global_coord[3][0], config.global_coord[3][1]), color, 2) 
