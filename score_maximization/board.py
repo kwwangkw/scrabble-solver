@@ -33,8 +33,7 @@ class Square:
 
 
 class ScrabbleBoard:
-    def __init__(self, dawg_root):
-
+    def __init__(self, dawg_root, board):
         row_1 = \
             [Square(modifier="3WS"), Square(), Square(), Square(modifier="2LS"), Square(),
              Square(), Square(), Square(modifier="3WS"), Square(), Square(),
@@ -92,6 +91,100 @@ class ScrabbleBoard:
 
         row_16 = [Square(sentinel=0) for _ in range(16)]
 
+        '''
+        row_1 = \
+            [Square(modifier="3WS", letter=board[0][0]), Square(letter=board[0][1]), Square(letter=board[0][2]), Square(modifier="2LS", letter=board[0][3]), Square(letter=board[0][4]),
+             Square(letter=board[0][5]), Square(letter=board[0][6]), Square(modifier="3WS", letter=board[0][7]), Square(letter=board[0][8]), Square(letter=board[0][9]),
+             Square(letter=board[0][10]), Square(modifier="2LS", letter=board[0][11]), Square(letter=board[0][12]), Square(letter=board[0][13]), Square(modifier="3WS", letter=board[0][14]),
+             Square(sentinel=0)]
+
+        row_2 = \
+            [Square(letter=board[1][0]), Square(modifier="2WS", letter=board[1][1]), Square(letter=board[1][2]), Square(letter=board[1][3]), Square(letter=board[1][4]),
+             Square(modifier="3LS", letter=board[1][5]), Square(letter=board[1][6]), Square(letter=board[1][7]), Square(letter=board[1][8]), Square(modifier="3LS", letter=board[1][9]),
+             Square(letter=board[1][10]), Square(letter=board[1][11]), Square(letter=board[1][12]), Square(modifier="2WS", letter=board[1][13]), Square(letter=board[1][14]),
+             Square(sentinel=0)]
+
+        row_3 = \
+            [Square(letter=board[2][0]), Square(letter=board[2][1]), Square(modifier="2WS", letter=board[2][2]), Square(letter=board[2][3]), Square(letter=board[2][4]),
+             Square(letter=board[2][5]), Square(modifier="2LS", letter=board[2][6]), Square(letter=board[2][7]), Square(modifier="2LS", letter=board[2][8]), Square(letter=board[2][9]),
+             Square(letter=board[2][10]), Square(letter=board[2][11]), Square(modifier="2WS", letter=board[2][12]), Square(letter=board[2][13]), Square(letter=board[2][14]),
+             Square(sentinel=0)]
+
+        row_4 = \
+            [Square(modifier="2LS", letter=board[3][0]), Square(letter=board[3][1]), Square(letter=board[3][2]), Square(modifier="2WS", letter=board[3][3]), Square(letter=board[3][4]),
+             Square(letter=board[3][5]), Square(letter=board[3][6]), Square(modifier="2LS", letter=board[3][7]), Square(letter=board[3][8]), Square(letter=board[3][9]),
+             Square(letter=board[3][10]), Square(modifier="2WS", letter=board[3][11]), Square(letter=board[3][12]), Square(letter=board[3][13]), Square(modifier="2LS", letter=board[3][14]),
+             Square(sentinel=0)]
+
+        row_5 = \
+            [Square(letter=board[4][0]), Square(letter=board[4][1]), Square(letter=board[4][2]), Square(letter=board[4][3]), Square(modifier="2WS", letter=board[4][4]),
+             Square(letter=board[4][5]), Square(letter=board[4][6]), Square(letter=board[4][7]), Square(letter=board[4][8]), Square(letter=board[4][9]),
+             Square(modifier="2WS", letter=board[4][10]), Square(letter=board[4][11]), Square(letter=board[4][12]), Square(letter=board[4][13]), Square(letter=board[4][14]),
+             Square(sentinel=0)]
+
+        row_6 = \
+            [Square(letter=board[5][0]), Square(modifier="3LS", letter=board[5][1]), Square(letter=board[5][2]), Square(letter=board[5][3]), Square(letter=board[5][4]),
+             Square(modifier="3LS", letter=board[5][5]), Square(letter=board[5][6]), Square(letter=board[5][7]), Square(letter=board[5][8]), Square(modifier="3LS", letter=board[5][9]),
+             Square(letter=board[5][10]), Square(letter=board[5][11]), Square(letter=board[5][12]), Square(modifier="3LS", letter=board[5][13]), Square(letter=board[5][14]),
+             Square(sentinel=0)]
+
+        row_7 = \
+            [Square(letter=board[6][0]), Square(letter=board[6][1]), Square(modifier="2LS", letter=board[6][2]), Square(letter=board[6][3]), Square(letter=board[6][4]),
+             Square(letter=board[6][5]), Square(modifier="2LS", letter=board[6][6]), Square(letter=board[6][7]), Square(modifier="2LS", letter=board[6][8]), Square(letter=board[6][9]),
+             Square(letter=board[6][10]), Square(letter=board[6][11]), Square(modifier="2LS", letter=board[6][12]), Square(letter=board[6][13]), Square(letter=board[6][14]),
+             Square(sentinel=0)]
+
+        row_8 = \
+            [Square(modifier="3WS", letter=board[7][0]), Square(letter=board[7][1]), Square(letter=board[7][2]), Square(modifier="2LS", letter=board[7][3]), Square(letter=board[7][4]),
+             Square(letter=board[7][5]), Square(letter=board[7][6]), Square(modifier="2WS", letter=board[7][7]), Square(letter=board[7][8]), Square(letter=board[7][9]),
+             Square(letter=board[7][10]), Square(modifier="2LS", letter=board[7][11]), Square(letter=board[7][12]), Square(letter=board[7][13]), Square(modifier="3WS", letter=board[7][14]),
+             Square(sentinel=0)]
+        
+        row_9 = \
+            [Square(letter=board[8][0]), Square(letter=board[8][1]), Square(modifier="2LS", letter=board[8][2]), Square(letter=board[8][3]), Square(letter=board[8][4]),
+             Square(letter=board[8][5]), Square(modifier="2LS", letter=board[8][6]), Square(letter=board[8][7]), Square(modifier="2LS", letter=board[8][8]), Square(letter=board[8][9]),
+             Square(letter=board[8][10]), Square(letter=board[8][11]), Square(modifier="2LS", letter=board[8][12]), Square(letter=board[8][13]), Square(letter=board[8][14]),
+             Square(sentinel=0)]
+
+        row_10 = \
+            [Square(letter=board[9][0]), Square(modifier="3LS", letter=board[9][1]), Square(letter=board[9][2]), Square(letter=board[9][3]), Square(letter=board[9][4]),
+             Square(modifier="3LS", letter=board[9][5]), Square(letter=board[9][6]), Square(letter=board[9][7]), Square(letter=board[9][8]), Square(modifier="3LS",  letter=board[9][9]),
+             Square(letter=board[9][10]), Square(letter=board[9][11]), Square(letter=board[9][12]), Square(modifier="3LS", letter=board[9][13]), Square(letter=board[9][14]),
+             Square(sentinel=0)]
+
+        row_11 = \
+            [Square(letter=board[10][0]), Square(letter=board[10][1]), Square(letter=board[10][2]), Square(letter=board[10][3]), Square(modifier="2WS", letter=board[10][4]),
+             Square(letter=board[10][5]), Square(letter=board[10][6]), Square(letter=board[10][7]), Square(letter=board[10][8]), Square(letter=board[10][9]),
+             Square(modifier="2WS", letter=board[10][10]), Square(letter=board[10][11]), Square(letter=board[10][12]), Square(letter=board[10][13]), Square(letter=board[10][14]),
+             Square(sentinel=0)]
+
+        row_12 = \
+            [Square(modifier="2LS", letter=board[11][0]), Square(letter=board[11][1]), Square(letter=board[11][2]), Square(modifier="2WS", letter=board[11][3]), Square(letter=board[11][4]),
+             Square(letter=board[11][5]), Square(letter=board[11][6]), Square(modifier="2LS", letter=board[11][7]), Square(letter=board[11][8]), Square(letter=board[11][9]),
+             Square(letter=board[11][10]), Square(modifier="2WS", letter=board[11][11]), Square(letter=board[11][12]), Square(letter=board[11][13]), Square(modifier="2LS", letter=board[11][14]),
+             Square(sentinel=0)]
+
+        row_13 = \
+            [Square(letter=board[12][0]), Square(letter=board[12][1]), Square(modifier="2WS", letter=board[12][2]), Square(letter=board[12][3]), Square(letter=board[12][4]),
+             Square(letter=board[12][5]), Square(modifier="2LS", letter=board[12][6]), Square(letter=board[12][7]), Square(modifier="2LS", letter=board[12][8]), Square(letter=board[12][9]),
+             Square(letter=board[12][10]), Square(letter=board[12][11]), Square(modifier="2WS", letter=board[12][12]), Square(letter=board[12][13]), Square(letter=board[12][14]),
+             Square(sentinel=0)]
+
+        row_14 = \
+            [Square(letter=board[13][0]), Square(modifier="2WS", letter=board[13][1]), Square(letter=board[13][2]), Square(letter=board[13][3]), Square(letter=board[13][4]),
+             Square(modifier="3LS", letter=board[13][5]), Square(letter=board[13][6]), Square(letter=board[13][7]), Square(letter=board[13][8]), Square(modifier="3LS", letter=board[13][9]),
+             Square(letter=board[13][10]), Square(letter=board[13][11]), Square(letter=board[13][12]), Square(modifier="2WS", letter=board[13][13]), Square(letter=board[13][14]),
+             Square(sentinel=0)]
+
+        row_15 = \
+            [Square(modifier="3WS", letter=board[14][0]), Square(letter=board[14][1]), Square(letter=board[14][2]), Square(modifier="2LS", letter=board[14][3]), Square(letter=board[14][4]),
+             Square(letter=board[14][5]), Square(letter=board[14][6]), Square(modifier="3WS", letter=board[14][7]), Square(letter=board[14][8]), Square(letter=board[14][9]),
+             Square(letter=board[14][10]), Square(modifier="2LS", letter=board[14][11]), Square(letter=board[14][12]), Square(letter=board[14][13]), Square(modifier="3WS", letter=board[14][14]),
+             Square(sentinel=0)]
+
+        row_16 = [Square(sentinel=0) for _ in range(16)]
+        '''
+        
         # variables to describe board state
         self.board = [row_1, row_2, row_3, row_4, row_5, row_6, row_7, row_8,
                       row_9, row_10, row_11, row_12, row_13, row_14, row_15, row_16]
@@ -470,7 +563,7 @@ class ScrabbleBoard:
             self._transpose()
             return word_rack
 
-        if transposed:
+        if transposed: #HERE
             self.insert_word(self.best_row + 1, self.best_col + 1 - self.dist_from_anchor, self.best_word)
             self._transpose()
         else:
