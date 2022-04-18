@@ -19,7 +19,7 @@ iter = 1
 for file in files:
     #config.img = cv2.imread(str(file))
     img = cv2.imread(str(file))
-    img = cv2.resize(img, (900, 900))
+    img = cv2.resize(img, (900, 900), cv2.INTER_AREA)
     config.img = img
 
     full_height,full_width,_ = img.shape
