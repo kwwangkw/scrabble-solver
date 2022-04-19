@@ -8,13 +8,14 @@ import math
 import helper
 import config
 import pathlib
+import find_corners
 
 #img = cv2.imread('coffee_sample.png')
 
 
 # pic = 'hello.jpeg'
 # img = cv2.imread(pic)
-files = [f for f in pathlib.Path("error_inputs").iterdir()]
+files = [f for f in pathlib.Path("will_customs").iterdir()]
 iter = 1
 for file in files:
     #config.img = cv2.imread(str(file))
@@ -46,12 +47,15 @@ for file in files:
     y_bot = 0
 
     img_string = 'image'
+    pts =  np.zeros((4, 2), dtype = "float32")
+
+    pts = find_corners.find_corners(img)
+
+
+
     cv2.imshow(img_string, img)
 
-    
-    
-    #helper.manual_warp(img, full_width, full_height)               ### TRACKBAR
-    helper.click_corners(img, img_string, full_width, full_height)  ### CORNERS
+    #helper.click_corners(img, img_string, full_width, full_height)  ### CORNERS
     while (True):
         k = cv2.waitKey(10)
         if k == 32:
@@ -59,7 +63,8 @@ for file in files:
 
     print("Rect Done [X]")
 
-    pts = np.asarray(config.global_coord, dtype = "float32")
+    
+    #pts = np.asarray(config.global_coord, dtype = "float32")
     warped = helper.four_point_transform(img, pts) # Their code
 
     warp_h, warp_w, _ = warped.shape

@@ -9,6 +9,8 @@ import config
 def nothing(x):
     pass
 
+
+
 def click_event(event, x, y, flags, params, img_Bin):
  
     # checking for left mouse clicks
