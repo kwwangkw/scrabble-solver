@@ -5,11 +5,47 @@ import math
 import cv2 
 import config
 
+btn_down = False
+coord_num = 0
 
 def nothing(x):
     pass
 
+def draw_rect(img, pts):
+    img_cp = img.copy()
+    color = (0,255,0)
+    xs = pts[:,0]
+    ys = pts[:,1]
+    
+    for i in range(4):
+        if (i == 0):
+            cv2.line(img_cp, (pts[0][0], pts[0][1]), (pts[3][0], pts[3][1]), color, 2)
+        else:
+            cv2.line(img_cp, (pts[i][0], pts[i][1]), (pts[i-1][0], pts[i-1][1]), color, 2)
+    
+    for i in range(len(xs)):
+        cv2.circle(img_cp, (xs[i], ys[i]), 6, (250,0,255), -1)
 
+    return img_cp
+    
+
+# def drag_event(event, x, y, flags, params, img_Bin, pts_Bin):
+#     img_cpB = img_Bin.copy()
+#     if (event == cv2.EVENT_LBUTTONDOWN):
+#         min_dist = 100000
+#         for i in range(4):
+#             point1 = (x,y)
+#             point2 = (pts_Bin[i][0], pts_Bin[i][1])
+#             dist = np.linalg.norm(point1 - point2)
+#             if (dist < min_dist):
+#                 min_dist = dist
+#         img_Bin 
+
+        
+
+# def drag_corners(img_in, img_string, full_width_in, full_height_in, pts_in):
+#     cv2.setMouseCallback(img_string, lambda *x: drag_event(*x, img_in, pts_in))
+#     cv2.waitKey(0)
 
 def click_event(event, x, y, flags, params, img_Bin):
  
@@ -195,3 +231,50 @@ def four_point_transform(image, pts):
 	warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
 	# return the warped image
 	return warped
+
+def mouse_handler(event, x, y, flags, data, img_in, img_wrect_in, pts_in):
+    global btn_down
+    global coord_num
+
+    if event == cv2.EVENT_LBUTTONUP and btn_down:
+        #if you release the button, finish the line
+        btn_down = False
+
+        pts_in[coord_num][0] = x
+        pts_in[coord_num][1] = y
+        img_cp = img_in.copy()
+        img_cp = draw_rect(img_in, pts_in)
+        cv2.imshow('image', img_cp)
+
+    elif event == cv2.EVENT_MOUSEMOVE and btn_down:
+        #thi is just for a ine visualization
+        pts_in[coord_num][0] = x
+        pts_in[coord_num][1] = y
+        img_cp = img_in.copy()
+        img_cp = draw_rect(img_in, pts_in)
+        cv2.imshow('image', img_cp)
+
+    elif event == cv2.EVENT_LBUTTONDOWN:
+        btn_down = True
+        min_dist = 100000
+        for i in range(4):
+            point1 = np.asarray([x,y])
+            point2 = np.asarray([pts_in[i][0], pts_in[i][1]])
+            dist = np.linalg.norm(point1 - point2)
+            if (dist < min_dist):
+                min_dist = dist
+                coord_num = i
+
+        pts_in[coord_num][0] = x
+        pts_in[coord_num][1] = y
+        img_cp = img_in.copy()
+        img_cp = draw_rect(img_in, pts_in)
+        cv2.imshow('image', img_cp)
+
+        # data['lines'].insert(0,[(x, y)]) #prepend the point
+        # cv2.circle(data['im'], (x, y), 3, (0, 0, 255), 5, 16)
+        # cv2.imshow("Image", data['im'])
+
+def drag_corners(img_in, img_wrect_in, img_string, pts_in):
+    cv2.setMouseCallback(img_string, lambda *x: mouse_handler(*x, img_in, img_wrect_in, pts_in))
+    cv2.waitKey(0)

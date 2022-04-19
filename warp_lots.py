@@ -50,12 +50,16 @@ for file in files:
     pts =  np.zeros((4, 2), dtype = "float32")
 
     pts = find_corners.find_corners(img)
+    img_wrect = img.copy()
+    img_wrect = helper.draw_rect(img, pts)
 
 
+    cv2.imshow(img_string, img_wrect)
 
-    cv2.imshow(img_string, img)
+    helper.drag_corners(img, img_wrect, img_string, pts)
 
     #helper.click_corners(img, img_string, full_width, full_height)  ### CORNERS
+    
     while (True):
         k = cv2.waitKey(10)
         if k == 32:
