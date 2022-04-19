@@ -14,7 +14,7 @@ iter = 1
 for file in files:
     pathlib.Path("./crop_chars/"+str(file.stem)).mkdir(exist_ok=True)
 
-
+    print(str(file))
     warped = cv2.imread(str(file))
     warped = cv2.resize(warped, (900, 900), cv2.INTER_AREA)
     warp_h, warp_w, _ = warped.shape

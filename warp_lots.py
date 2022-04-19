@@ -14,7 +14,7 @@ import pathlib
 
 # pic = 'hello.jpeg'
 # img = cv2.imread(pic)
-files = [f for f in pathlib.Path("scrabble_dump").iterdir()]
+files = [f for f in pathlib.Path("will_customs").iterdir()]
 iter = 1
 for file in files:
     #config.img = cv2.imread(str(file))
