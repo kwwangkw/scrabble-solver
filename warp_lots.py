@@ -33,7 +33,6 @@ for file in files:
 
     contrast = (img > ave_value) * 255
 
-
     contrast = contrast.astype("uint8")
 
     #plt.savefig('output2.png')
