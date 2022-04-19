@@ -14,7 +14,7 @@ import pathlib
 
 # pic = 'hello.jpeg'
 # img = cv2.imread(pic)
-files = [f for f in pathlib.Path("scrabble_dump").iterdir()]
+files = [f for f in pathlib.Path("error_inputs").iterdir()]
 iter = 1
 for file in files:
     #config.img = cv2.imread(str(file))
@@ -97,7 +97,7 @@ for file in files:
             cv2.destroyWindow("warp")
             break
 
-    cv2.imwrite("./warp_dump/w" + str(iter) + ".jpg", cp_warped)
+    cv2.imwrite("./error_warp/w" + str(iter) + ".jpg", cp_warped)
     config.click_incr = 0
     config.abs_incr = 0
     config.done = False

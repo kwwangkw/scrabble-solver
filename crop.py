@@ -9,10 +9,10 @@ import helper
 import config
 import pathlib
 
-files = [f for f in pathlib.Path("warp_dump").iterdir()]
+files = [f for f in pathlib.Path("additional_warps").iterdir()]
 iter = 1
 for file in files:
-    pathlib.Path("./crop_chars/"+str(file.stem)).mkdir(exist_ok=True)
+    pathlib.Path("./additional_crops/"+str(file.stem)).mkdir(exist_ok=True)
 
 
     warped = cv2.imread(str(file))
@@ -55,7 +55,7 @@ for file in files:
                     break
 
             folder_name = str(file.stem)
-            cv2.imwrite(f"./crop_chars/{folder_name}/" + chr(manual_char) + "-" + str(seq) + ".png", roi)
+            cv2.imwrite(f"./additional_crops/{folder_name}/" + chr(manual_char) + "-" + str(seq) + ".png", roi)
             #print(seq)
             cv2.rectangle(cp_warped, (wi*j, hi*i), (wi*(j+1), hi*(i+1)), (50, 155, 50), 3)
            
