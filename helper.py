@@ -44,11 +44,14 @@ def get_prediction(img, model):
     img_arr = process_img(img)
     img_arr = img_arr.reshape(1, *img_arr.shape) # Reshape to include batch dimension
     model.eval()
-    pred = torch.softmax(model(img_arr), 1).argmax(1)[0]
-    if pred == 36:
-        return None
+    scores = torch.softmax(model(img_arr), 1)
+    pred = scores.argmax(1)
+    score = scores[0, pred]
+    # pred = torch.softmax(model(img_arr), 1).argmax(1)[0]
+    if pred == 26:
+        return " ", score
     else:
-        return chr(65 + pred)
+        return chr(65 + pred), score
 
 
 
