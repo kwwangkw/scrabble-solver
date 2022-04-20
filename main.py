@@ -13,6 +13,7 @@ from torch import nn
 from torchvision import transforms
 from PIL import Image
 import pickle
+import itertools
 
 # Model definition
 class Network(nn.Module):
@@ -112,55 +113,157 @@ x_bot = 0
 y_top = 0
 y_bot = 0
 
+print_bool = False
+
 img_string = 'image'
-pts =  np.zeros((4, 2), dtype = "float32")
+#pts =  np.zeros((4, 2), dtype = "float32")
 
 model = Network() 
 state_dict = torch.load("letter_model_state.sav", map_location=torch.device('cpu'))
 model.load_state_dict(state_dict)
 
 pts = find_corners.find_corners(img)
+#breakpoint()
+highest_score = 0.0
+best_corners = np.zeros((4, 2))
+incr = 0
+for x in pts:
+    #x = np.array(x)
+    #breakpoint()
+    img_wrect = img.copy()
+    img_wrect = helper.draw_rect(img, x)
+
+
+    #cv2.imshow(img_string, img_wrect)
+    # helper.drag_corners(img, img_wrect, img_string, pts)
+    # while (True):
+    #     k = cv2.waitKey(10)
+    #     if k == 32:
+    #         break
+    # print("Rect Done [X]")
+
+    warped = helper.four_point_transform(img, x) # Their code
+
+    warp_h, warp_w, _ = warped.shape
+
+
+    #print("Loading letter recognition...")
+
+    wi = math.ceil(warp_w/15)
+    hi = math.ceil(warp_h/15)
+    #print(str(wi) + ", ", str(hi))
+
+    charar = np.chararray((15, 15))
+    #print("warp dimensions: ", warped.shape)
+    cp_warped = warped.copy()
+    max_dim = max(wi, hi)
+    cp_warped = cv2.resize(cp_warped, (max_dim*15, max_dim*15))
+
+
+    # cv2.imshow("warp", cp_warped)
+    # print("warp dimensions: ", cp_warped.shape)
+    # print("(B)")
+    # print("[Press [space] to continue]")
+
+    # while (True):
+    #     k = cv2.waitKey(10)
+    #     if k == 32:
+    #         cv2.destroyWindow("warp")
+    #         break
+
+
+    #charar = np.chararray((15, 15))
+    charar = [[0 for a in range(15)]for b in range(15)]
+    score_arr = [[0 for c in range(15)]for d in range(15)]
+    #print("warp dimensions: ", warped.shape)
+    cp_warped = warped.copy()
+    cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
+    #model = pickle.load(open('letter_model_state.sav', 'rb'))
+
+
+    for i in range(15):
+        #print("i: ", i)
+        for j in range(15):
+
+            
+            # #cv2.rectangle(cp_warped, (wi*j, hi*i), (wi*(j+1), hi*(i+1)), (200, 50, 255), 1)
+            # cv2.imshow('segmented', cp_warped)
+            # cv2.waitKey(1)
+
+
+
+            roi = cp_warped[hi*i:hi*(i+1), wi*j:wi*(j+1)]
+           
+            
+            char, score_pred = helper.get_prediction(roi, model)
+            #score_pred = helper.get_prediction(roi, model)[1][0]
+
+            charar[i][j] = char
+            score_arr[i][j] = round(score_pred[0].item(), 4)
+
+        if print_bool:
+            print(charar[i])
+
+
+            #    common.save_img(roi, 'roi.jpg')
+    for i in range(15):
+        ax = 0
+        if print_bool:
+            print(score_arr[i])
+    score = np.mean(np.asarray(score_arr))
+    #print("mean: ", round(score, 5))
+    if (score > highest_score):
+        highest_score = score
+        best_corners = x
+    if (incr % 100 == 0):
+        print(incr/100)
+        print("score: ", round(score,4), " - [highscore: ", round(highest_score,4), "]")
+    incr = incr + 1
+
+
+
+
+
+
+### NEXT STEP AFTER BEST
 img_wrect = img.copy()
-img_wrect = helper.draw_rect(img, pts)
+img_wrect = helper.draw_rect(img, best_corners)
 
 
-cv2.imshow(img_string, img_wrect)
+#cv2.imshow(img_string, img_wrect)
+# helper.drag_corners(img, img_wrect, img_string, pts)
+# while (True):
+#     k = cv2.waitKey(10)
+#     if k == 32:
+#         break
+# print("Rect Done [X]")
 
-helper.drag_corners(img, img_wrect, img_string, pts)
-while (True):
-    k = cv2.waitKey(10)
-    if k == 32:
-        break
-
-print("Rect Done [X]")
-
-#pts = np.asarray(config.global_coord, dtype = "float32")
-warped = helper.four_point_transform(img, pts) # Their code
+warped = helper.four_point_transform(img, best_corners) # Their code
 
 warp_h, warp_w, _ = warped.shape
 
 
-print("Loading letter recognition...")
 
 wi = math.ceil(warp_w/15)
 hi = math.ceil(warp_h/15)
-#print(str(wi) + ", ", str(hi))
 
 charar = np.chararray((15, 15))
 print("warp dimensions: ", warped.shape)
 cp_warped = warped.copy()
 max_dim = max(wi, hi)
 cp_warped = cv2.resize(cp_warped, (max_dim*15, max_dim*15))
-cv2.imshow("warp", cp_warped)
-print("warp dimensions: ", cp_warped.shape)
-print("(B)")
-print("[Press [space] to continue]")
 
-while (True):
-    k = cv2.waitKey(10)
-    if k == 32:
-        cv2.destroyWindow("warp")
-        break
+
+# cv2.imshow("warp", cp_warped)
+# print("warp dimensions: ", cp_warped.shape)
+# print("(B)")
+# print("[Press [space] to continue]")
+
+# while (True):
+#     k = cv2.waitKey(10)
+#     if k == 32:
+#         cv2.destroyWindow("warp")
+#         break
 
 
 #charar = np.chararray((15, 15))
@@ -176,60 +279,30 @@ for i in range(15):
     #print("i: ", i)
     for j in range(15):
 
-        catch = False
         
         cv2.rectangle(cp_warped, (wi*j, hi*i), (wi*(j+1), hi*(i+1)), (200, 50, 255), 1)
         #cv2.putText(cp_warped, str(j+1), (wi*j, hi*i+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
         cv2.imshow('segmented', cp_warped)
         cv2.waitKey(10)
-        #common.save_img(cp_warped, 'output2.jpg')
+
         roi = cp_warped[hi*i:hi*(i+1), wi*j:wi*(j+1)]
-
-
-        # roi = cv2.resize(roi, (wi*2, hi*2))
-        # gray = cv2.cvtColor(roi, cv2.COLOR_RGB2GRAY)
-        # gray, img_bin = cv2.threshold(gray,128,255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        # gray = cv2.bitwise_not(cv2.bitwise_not(img_bin))
-        # kernel = np.ones((2, 1), np.uint8)
-        # roi = cv2.erode(gray, kernel, iterations=1)
-        # roi = cv2.dilate(roi, kernel, iterations=1)
         
         
         char, score_pred = helper.get_prediction(roi, model)
         #score_pred = helper.get_prediction(roi, model)[1][0]
 
-        # letter_config = '--psm 10 --oem 3 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVXWYZ'
-        
-        # db = pytesseract.image_to_data(roi, lang='eng', config=letter_config, output_type=Output.DICT)
-        
-
-        # char = '_'
-        # try:
-        #     char = db['text'][4]
-        # except:
-        #     char = '_'
-
         charar[i][j] = char
         score_arr[i][j] = round(score_pred[0].item(), 4)
-        #print(char)
-        # if (i == 0 and j ==  8):
-        #     print(db['text'])
-        #     plt.imshow(roi)
-        #     plt.show()
-        # if (i == 0 and j ==  2):
-        #     print(db['text'][4])
-        #     plt.imshow(roi)
-        #     plt.show()
-        # if (i == 0 and j == 3):
-        #     print(db['text'][4])
-        #     plt.imshow(roi)
-        #     plt.show()
+
     print(charar[i])
 
 
         #    common.save_img(roi, 'roi.jpg')
 for i in range(15):
+    x = 0
+    
     print(score_arr[i])
-print("mean: ", round(np.mean(np.asarray(score_arr)), 5))
+score = np.mean(np.asarray(score_arr))
+print(score)
 #print(charar)
 

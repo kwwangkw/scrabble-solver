@@ -2,17 +2,30 @@ import cv2
 import numpy as np
 
 def order_points(pts):
-	rect = np.zeros((4, 2), dtype = "float32")
+    count = 400
+    rect = np.zeros((count, 4, 2), dtype = "float32")
 
-	s = pts.sum(axis = 1)
-	rect[0] = pts[np.argmin(s)]
-	rect[2] = pts[np.argmax(s)]
+    s = pts.sum(axis = 1)
+    ordered = np.argsort(s)
+    diff = np.diff(pts, axis = 1)
+    diff = diff.reshape(-1)
+    ordered_diff = np.argsort(diff)
 
-	diff = np.diff(pts, axis = 1)
-	rect[1] = pts[np.argmin(diff)]
-	rect[3] = pts[np.argmax(diff)]
+    for i in range(count):
+        #breakpoint()
+        rect[i, 0] = pts[ordered[i]]
+        rect[i, 2] = pts[ordered[ordered.shape[0] - i-1]]
 
-	return rect.astype(int)
+        rect[i, 1] = pts[ordered_diff[0]]
+        rect[i, 3] = pts[ordered_diff[ordered.shape[0] - i-1]]
+        #breakpoint()
+    # rect[0] = pts[np.argmin(s)]
+    # rect[2] = pts[np.argmax(s)]
+
+    # diff = np.diff(pts, axis = 1)
+    # rect[1] = pts[np.argmin(diff)]
+    # rect[3] = pts[np.argmax(diff)]
+    return rect.astype(int)
 
 def find_corners(img):
     # CV2 cornerHarris tutorial followed from https://answers.opencv.org/question/186538/to-find-the-coordinates-of-corners-detected-by-harris-corner-detection/
@@ -29,8 +42,9 @@ def find_corners(img):
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
     corners = cv2.cornerSubPix(gray,np.float32(centroids),(5,5),(-1,-1),criteria)
-
+    #breakpoint()
     board_corners = order_points(corners)
+    
     
     xs = board_corners[:,0]
     ys = board_corners[:,1]

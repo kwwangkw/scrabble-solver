@@ -61,8 +61,8 @@ def nothing(x):
 def draw_rect(img, pts):
     img_cp = img.copy()
     color = (0,255,0)
-    xs = pts[:,0]
-    ys = pts[:,1]
+    # xs = pts[:,0]
+    # ys = pts[:,1]
     
     for i in range(4):
         if (i == 0):
@@ -70,8 +70,8 @@ def draw_rect(img, pts):
         else:
             cv2.line(img_cp, (pts[i][0], pts[i][1]), (pts[i-1][0], pts[i-1][1]), color, 2)
     
-    for i in range(len(xs)):
-        cv2.circle(img_cp, (xs[i], ys[i]), 6, (250,0,255), -1)
+    for i in range(4):
+        cv2.circle(img_cp, (pts[i][0], pts[i][1]), 6, (250,0,255), -1)
 
     return img_cp
     
