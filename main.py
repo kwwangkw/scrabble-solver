@@ -7,6 +7,12 @@ import matplotlib.pyplot as plt
 import math
 import helper
 import config
+import find_corners
+import torch
+from torch import nn
+from torchvision import transforms
+from PIL import Image
+import pickle
 
 #img = cv2.imread('coffee_sample.png')
 
@@ -27,20 +33,9 @@ ave_value = (np.max(img) + np.min(img))/2
 
 contrast = (img > ave_value) * 255
 
-common.save_img(contrast, 'output0.jpg')
-
 contrast = contrast.astype("uint8")
 
-#plt.savefig('output2.png')
-custom_config = '--psm 1 --oem 3 -c tessedit_char_blacklist=0123456789'
-#d = pytesseract.image_to_boxes(contrast, lang='eng', config=custom_config)
-
-# print(contrast.dtype)
-# print(img.dtype)
-
-#dnp = np.asarray(d)
-
-d = pytesseract.image_to_data(img, lang='eng', config=custom_config, output_type=Output.DICT)
+#d = pytesseract.image_to_data(img, lang='eng', config=custom_config, output_type=Output.DICT)
 full_width = 0
 full_height = 0
 print(str(full_width) + ", ", str(full_height))
@@ -50,11 +45,16 @@ y_top = 0
 y_bot = 0
 
 img_string = 'image'
-cv2.imshow(img_string, img)
+pts =  np.zeros((4, 2), dtype = "float32")
 
-full_height,full_width,_ = img.shape
-#helper.manual_warp(img, full_width, full_height)               ### TRACKBAR
-helper.click_corners(img, img_string, full_width, full_height)  ### CORNERS
+pts = find_corners.find_corners(img)
+img_wrect = img.copy()
+img_wrect = helper.draw_rect(img, pts)
+
+
+cv2.imshow(img_string, img_wrect)
+
+helper.drag_corners(img, img_wrect, img_string, pts)
 while (True):
     k = cv2.waitKey(10)
     if k == 32:
@@ -62,22 +62,11 @@ while (True):
 
 print("Rect Done [X]")
 
-n_boxes = len(d['level'])
-
-pts = np.asarray(config.global_coord, dtype = "float32")
+#pts = np.asarray(config.global_coord, dtype = "float32")
 warped = helper.four_point_transform(img, pts) # Their code
 
 warp_h, warp_w, _ = warped.shape
 
-cv2.imshow("warp", warped)
-print("warp dimensions: ", warped.shape)
-print("(B)")
-print("[Press [space] to continue]")
-
-while (True):
-    k = cv2.waitKey(10)
-    if k == 32:
-        break
 
 print("Loading letter recognition...")
 
@@ -88,36 +77,39 @@ print(str(wi) + ", ", str(hi))
 charar = np.chararray((15, 15))
 print("warp dimensions: ", warped.shape)
 cp_warped = warped.copy()
+max_dim = max(wi, hi)
+cp_warped = cv2.resize(cp_warped, (max_dim*15, max_dim*15))
+cv2.imshow("warp", cp_warped)
+print("warp dimensions: ", cp_warped.shape)
+print("(B)")
+print("[Press [space] to continue]")
+
+while (True):
+    k = cv2.waitKey(10)
+    if k == 32:
+        cv2.destroyWindow("warp")
+        break
+
+
+charar = np.chararray((15, 15))
+#print("warp dimensions: ", warped.shape)
+cp_warped = warped.copy()
 cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
+#model = pickle.load(open('letter_model_state.sav', 'rb'))
+
 for i in range(15):
-    print("i: ", i)
+    #print("i: ", i)
     for j in range(15):
-        print(j)
-        print(wi*(i+1), hi*(j+1))
+
         catch = False
         
         cv2.rectangle(cp_warped, (wi*j, hi*i), (wi*(j+1), hi*(i+1)), (200, 50, 255), 1)
         #cv2.putText(cp_warped, str(j+1), (wi*j, hi*i+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
-        cv2.imshow("final", cp_warped)
+        cv2.imshow('segmented', cp_warped)
         cv2.waitKey(10)
-        common.save_img(cp_warped, 'output2.jpg')
+        #common.save_img(cp_warped, 'output2.jpg')
         roi = cp_warped[hi*i:hi*(i+1), wi*j:wi*(j+1)]
-        # except:
-        #     cv2.rectangle(cp_warped, (hi*j, wi*i ), (warp_h-hi*j, warp_w-wi*i), (200, 50, 255), 1)
-        #     cv2.imshow("final", cp_warped)
-        #     cv2.waitKey(10)
-        #     common.save_img(cp_warped, 'output2.jpg')
-        #     roi = cp_warped[wi*i:warp_w-wi*i, hi*j:warp_h-hi*j]
-            
-        #     catch = True
 
-        # if (j == 13):
-        #     cv2.imshow("roi", roi)
-        #     cv2.waitKey(0)
-        #     print("CATCH: ", catch)
-        # if (j == 14):
-        #     cv2.imshow("roi", roi)
-        #     cv2.waitKey(0)
 
         roi = cv2.resize(roi, (wi*2, hi*2))
 
@@ -127,14 +119,15 @@ for i in range(15):
         kernel = np.ones((2, 1), np.uint8)
         roi = cv2.erode(gray, kernel, iterations=1)
         roi = cv2.dilate(roi, kernel, iterations=1)
+        
+        # state_dict = torch.load("letter_model_state.sav", map_location=torch.device('cpu'))
+        # char = helper.get_prediction(roi, model)
 
         letter_config = '--psm 10 --oem 3 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVXWYZ'
-        #db = pytesseract.image_to_data(roi, config= letter_config, output_type=Output.DICT)
+        
         db = pytesseract.image_to_data(roi, lang='eng', config=letter_config, output_type=Output.DICT)
         
 
-        #db = pytesseract.image_to_data(roi, lang='eng', config=custom_config, output_type=Output.DICT)
-        #print(d)
         char = '_'
         try:
             char = db['text'][4]
@@ -160,10 +153,4 @@ for i in range(15):
         #    common.save_img(roi, 'roi.jpg')
 
 print(charar)
-# plt.imshow(img)
-# plt.show()
-# for element in d:
-    
 
-
-common.save_img(cp_warped, 'output1.jpg')

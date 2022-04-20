@@ -4,9 +4,53 @@ import matplotlib.pyplot as plt
 import math
 import cv2 
 import config
+import torch
+from torch import nn
+from torchvision import transforms
+from PIL import Image
+import pickle
 
 btn_down = False
 coord_num = 0
+
+def process_img(img):
+    transform = transforms.Compose([
+        transforms.Grayscale(),
+        transforms.Normalize(0, 1)
+    ])
+    img = cv2.resize(img,(32,32))
+    #img.thumbnail((32, 32))
+    img_arr = np.asarray(img)
+    if len(img_arr.shape) < 3:
+        img_arr = np.expand_dims(img_arr, 2)
+        img_arr = np.repeat(img_arr, 3, 2)
+    if img_arr.shape[2] > 3:
+        img_arr = img_arr[:,:,:3]
+
+    tpad = (32 - img_arr.shape[0]) // 2
+    bpad = 32 - tpad - img_arr.shape[0]
+    lpad = (32 - img_arr.shape[1]) // 2
+    rpad = 32 - img_arr.shape[1] - lpad
+
+    img_arr = np.pad(img_arr, ((tpad, bpad), (lpad, rpad), (0, 0)))
+    img_arr = img_arr.transpose(2, 0, 1).astype(np.double) / 256
+    img_tensor = transform(torch.Tensor(img_arr))
+    return img_tensor
+
+
+
+# Takes in PIL image and gives letter prediction. Returns None if prediction is a blank tile.
+def get_prediction(img, model):
+    img_arr = process_img(img)
+    img_arr = img_arr.reshape(1, *img_arr.shape) # Reshape to include batch dimension
+    model.eval()
+    pred = torch.softmax(model(img_arr), 1).argmax(1)[0]
+    if pred == 36:
+        return None
+    else:
+        return chr(65 + pred)
+
+
 
 def nothing(x):
     pass
@@ -28,165 +72,6 @@ def draw_rect(img, pts):
 
     return img_cp
     
-
-# def drag_event(event, x, y, flags, params, img_Bin, pts_Bin):
-#     img_cpB = img_Bin.copy()
-#     if (event == cv2.EVENT_LBUTTONDOWN):
-#         min_dist = 100000
-#         for i in range(4):
-#             point1 = (x,y)
-#             point2 = (pts_Bin[i][0], pts_Bin[i][1])
-#             dist = np.linalg.norm(point1 - point2)
-#             if (dist < min_dist):
-#                 min_dist = dist
-#         img_Bin 
-
-        
-
-# def drag_corners(img_in, img_string, full_width_in, full_height_in, pts_in):
-#     cv2.setMouseCallback(img_string, lambda *x: drag_event(*x, img_in, pts_in))
-#     cv2.waitKey(0)
-
-def click_event(event, x, y, flags, params, img_Bin):
- 
-    # checking for left mouse clicks
-    #print(x, ' ', y)
-    
-    if (event == cv2.EVENT_LBUTTONDOWN):
-    #if (event == False):
-        # displaying the coordinates
-        # on the Shell
-        print("click_incr:" , config.click_incr)
-        config.global_coord [config.click_incr] [0] = x
-        config.global_coord [config.click_incr] [1] = y
-
-
-        xa = config.global_coord[config.click_incr-1][0]
-        ya = config.global_coord[config.click_incr-1][1]
-        xb = config.global_coord[config.click_incr][0]
-        yb = config.global_coord[config.click_incr][1]
-        color = (0,255,0)
-
-        print(xb, ' ', yb)
-
-        config.abs_incr = config.abs_incr+1
-
-        #if (config.abs_incr % 2 == 0):
-                
-        if (config.click_incr < 3):
-            
-            if (config.click_incr == 0):
-                pass
-            else:
-                print("draw")
-                cv2.line(img_Bin, (xa, ya), (xb, yb), color, 1)        
-            
-            text_coord = str(xb) + ',' + str(yb)
-            #cv2.putText(img_Bin, text_coord, (xb+20,yb+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)    
-            cv2.imshow("image", img_Bin)
-            config.click_incr = config.click_incr + 1
-
-        elif (config.click_incr == 3 and not(config.done)):
-            #text_coord = str(xb) + ',' + str(yb)
-            #cv2.putText(img_Bin, text_coord, (xb+20,yb+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
-            cv2.line(img_Bin, (xa, ya), (xb, yb), color, 3)    
-            cv2.line(img_Bin, (config.global_coord[0][0], config.global_coord[0][1]), 
-            (config.global_coord[3][0], config.global_coord[3][1]), color, 2) 
-            cv2.imshow("image", img_Bin)
-            config.done = True
-            print("(A)")
-            print("[Press [space] to continue]")
-        else:
-            pass
-
-            
-        print(config.done)
-
-def click_corners(img_in, img_string, full_width_in, full_height_in):
-    cv2.setMouseCallback(img_string, lambda *x: click_event(*x, img_in))
-    cv2.waitKey(0)
-
-    
-
-def manual_warp(img_in, full_width_in, full_height_in):    
-    x_top = 0
-    x_bot = 0
-    y_top = 0
-    y_bot = 0
-    cv2.namedWindow("trackbar", cv2.WINDOW_NORMAL)
-    cv2.createTrackbar("Upper_X", "trackbar", x_top, full_width_in, nothing)
-    cv2.createTrackbar("Lower_X", "trackbar", x_bot, full_width_in, nothing)
-    cv2.createTrackbar("Upper_Y", "trackbar", y_top, full_height_in, nothing)
-    cv2.createTrackbar("Lower_Y", "trackbar", y_bot, full_height_in, nothing)
-
-
-
-    A_max = 2000
-    B_max = 2000
-    C_max = 5000
-
-    A_scale = 10000
-    B_scale = 10
-    C_scale = 100000000
-
-    A1 = int(A_max/2) 
-    A2 = int(A_max/2)  
-    A3 = int(A_max/2)
-    A4 = int(A_max/2)
-    B1 = int(B_max/2)
-    B2 = int(B_max/2)
-    C1 = int(C_max/2)
-    C2 = int(C_max/2)
-
-
-    cv2.createTrackbar("A1 (X-stretch)", "trackbar", A1, A_max, nothing)
-    cv2.createTrackbar("A2 (Bottom-slant)", "trackbar", A2, A_max, nothing)
-    cv2.createTrackbar("A3 (Left-slant)", "trackbar", A3, A_max, nothing)
-    cv2.createTrackbar("A4 (Y-stretch)", "trackbar", A4, A_max, nothing)
-    cv2.createTrackbar("B1 (X-shift)", "trackbar", B1, B_max, nothing)
-    cv2.createTrackbar("B2 (Y-shift)", "trackbar", B2, B_max, nothing)
-    cv2.createTrackbar("C1 (Left-lift)", "trackbar", C1, C_max, nothing)
-    cv2.createTrackbar("C2 (Bottom-lift)", "trackbar", C2, C_max, nothing)
-
-
-
-    while(True):
-        img_in_cp = img_in.copy()
-        
-
-        A1 = int(cv2.getTrackbarPos("A1 (X-stretch)", "trackbar"))
-        A2 = int(cv2.getTrackbarPos("A2 (Bottom-slant)", "trackbar"))
-        A3 = int(cv2.getTrackbarPos("A3 (Left-slant)", "trackbar"))
-        A4 = int(cv2.getTrackbarPos("A4 (Y-stretch)", "trackbar"))
-        B1 = int(cv2.getTrackbarPos("B1 (X-shift)", "trackbar"))
-        B2 = int(cv2.getTrackbarPos("B2 (Y-shift)", "trackbar"))
-        C1 = int(cv2.getTrackbarPos("C1 (Left-lift)", "trackbar"))
-        C2 = int(cv2.getTrackbarPos("C2 (Bottom-lift)", "trackbar"))
-
-        
-        #M = np.float32([[A1, A2, B1], [A3, A4, -B2], [C1, -C2, 1.00000]])
-        #M = np.float32([[A1/100, A2/100, B1], [A3/100, A4/100, -B2], [C1/100000, -C2/100000, 1.00000]])
-        
-        M_iden = np.float32([[1, 0.0, 0.0], [0.0, 1, 0.0], [0.0, 0.0, 1.00000]])
-        
-        M_fixed = np.float32([[1.0+(A1-(A_max/2))/A_scale, (A2-(A_max/2))/A_scale, (B1-(B_max/2))/B_scale], 
-        [(A3-(A_max/2))/A_scale, 1.0+(A4-(A_max/2))/A_scale, (B2-(B_max/2))/B_scale], 
-        [(C1-(C_max/2))/C_scale, (C2-(C_max/2))/C_scale, 1.00000]])
-
-        #print((B1-(B_max/2))/B_scale)
-        print((B2-(B_max/2)/B_scale))
-
-        img_in_cp = cv2.warpPerspective(img_in_cp, M_fixed, (img_in.shape[1], img_in.shape[0]), flags=cv2.INTER_LINEAR)
-
-        x_top = int(cv2.getTrackbarPos("Upper_X", "trackbar"))
-        x_bot = int(cv2.getTrackbarPos("Lower_X", "trackbar"))
-        y_top = int(cv2.getTrackbarPos("Upper_Y", "trackbar"))
-        y_bot = int(cv2.getTrackbarPos("Lower_X", "trackbar"))
-        cv2.line(img_in_cp, (x_top, 0), (x_top, full_height_in), (0,255,0), 1) #
-        cv2.imshow("stream", img_in_cp)
-        cv2.waitKey(10)
-
-
 def order_points(pts):
 	# initialzie a list of coordinates that will be ordered
 	# such that the first entry in the list is the top-left,
