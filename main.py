@@ -13,8 +13,13 @@ from torch import nn
 from torchvision import transforms
 from PIL import Image
 import pickle
+from dawg import *
+from board import ScrabbleBoard
+import sys
+import random
+import re
 
-# Model definition
+# Model definition - used for detecting letters
 class Network(nn.Module):
     def __init__(self):
         super().__init__()
@@ -82,154 +87,257 @@ class Network(nn.Module):
         x = self.fc2(x)
         return x
 
-#img = cv2.imread('coffee_sample.png')
+def best_move(board, word_rack, root):
+    tile_bag = ["A"] * 9 + ["B"] * 2 + ["C"] * 2 + ["D"] * 4 + ["E"] * 12 + ["F"] * 2 + ["G"] * 3 + \
+               ["H"] * 2 + ["I"] * 9 + ["J"] * 1 + ["K"] * 1 + ["L"] * 4 + ["M"] * 2 + ["N"] * 6 + \
+               ["O"] * 8 + ["P"] * 2 + ["Q"] * 1 + ["R"] * 6 + ["S"] * 4 + ["T"] * 6 + ["U"] * 4 + \
+               ["V"] * 2 + ["W"] * 2 + ["X"] * 1 + ["Y"] * 2 + ["Z"] * 1 + ["%"] * 2
 
+    
+    game = ScrabbleBoard(root, board)
 
-# pic = 'hello.jpeg'
-# img = cv2.imread(pic)
+    wordDict = []
+    locDict = []
+    currWord = ""
+    board_extended = [x + [""] for x in board]
 
-pic = 'hello.jpeg'
-#pic = 'scrab2.jpg'
-img = cv2.imread(pic)
+    for row in range(15):
+        currWord = ""
+        for col in range(16):
+            currChar = board_extended[row][col]
+            if currChar != '':
+                currWord = "".join([currWord, currChar])
+            if currChar == '' and currWord != ""and len(currWord) > 1:
+                wordDict.append(currWord)
+                locDict.append((row, col-len(currWord)))
+                currWord = ""
+                currChar = ""
+            elif currChar == "":
+                currWord = ""
+                currChar = ""
+    print(wordDict)
+    print(locDict)
 
-#img = cv2.resize(img, (1200, 1200))
-# imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    transposedWordDict = []
+    transposedLocDict = []
+    transposed_board = np.array(board)
+    transposed_board = transposed_board.T
+    transposed_board = transposed_board.tolist()
+    transposed_board = [x + [""] for x in transposed_board]
 
-hImg, wImg, _ = img.shape
+    for row in range(15):
+        currWord = ""
+        for col in range(16):
+            currChar = transposed_board[row][col]
+            if currChar != '':
+                currWord = "".join([currWord, currChar])
+            if currChar == '' and currWord != ""and len(currWord) > 1:
+                transposedWordDict.append(currWord)
+                transposedLocDict.append((row, col-len(currWord)))
+                currWord = ""
+                currChar = ""
+            elif currChar == "":
+                currWord = ""
+                currChar = ""
+    
+    print(transposedWordDict)
+    print(transposedLocDict)
 
-ave_value = (np.max(img) + np.min(img))/2
+    empty = True
+    for row in board:
+        for char in row:
+            if char.isalpha():
+                empty = False
 
-contrast = (img > ave_value) * 255
-
-contrast = contrast.astype("uint8")
-
-#d = pytesseract.image_to_data(img, lang='eng', config=custom_config, output_type=Output.DICT)
-full_width = 0
-full_height = 0
-print(str(full_width) + ", ", str(full_height))
-x_top = 0
-x_bot = 0
-y_top = 0
-y_bot = 0
-
-img_string = 'image'
-pts =  np.zeros((4, 2), dtype = "float32")
-
-model = Network() 
-state_dict = torch.load("letter_model_state.sav", map_location=torch.device('cpu'))
-model.load_state_dict(state_dict)
-
-pts = find_corners.find_corners(img)
-img_wrect = img.copy()
-img_wrect = helper.draw_rect(img, pts)
-
-
-cv2.imshow(img_string, img_wrect)
-
-helper.drag_corners(img, img_wrect, img_string, pts)
-while (True):
-    k = cv2.waitKey(10)
-    if k == 32:
-        break
-
-print("Rect Done [X]")
-
-#pts = np.asarray(config.global_coord, dtype = "float32")
-warped = helper.four_point_transform(img, pts) # Their code
-
-warp_h, warp_w, _ = warped.shape
-
-
-print("Loading letter recognition...")
-
-wi = math.ceil(warp_w/15)
-hi = math.ceil(warp_h/15)
-#print(str(wi) + ", ", str(hi))
-
-charar = np.chararray((15, 15))
-print("warp dimensions: ", warped.shape)
-cp_warped = warped.copy()
-max_dim = max(wi, hi)
-cp_warped = cv2.resize(cp_warped, (max_dim*15, max_dim*15))
-cv2.imshow("warp", cp_warped)
-print("warp dimensions: ", cp_warped.shape)
-print("(B)")
-print("[Press [space] to continue]")
-
-while (True):
-    k = cv2.waitKey(10)
-    if k == 32:
-        cv2.destroyWindow("warp")
-        break
-
-
-#charar = np.chararray((15, 15))
-charar = [[0 for x in range(15)]for y in range(15)]
-score_arr = [[0 for x in range(15)]for y in range(15)]
-#print("warp dimensions: ", warped.shape)
-cp_warped = warped.copy()
-cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
-#model = pickle.load(open('letter_model_state.sav', 'rb'))
-
-
-for i in range(15):
-    #print("i: ", i)
-    for j in range(15):
-
-        catch = False
+    if not empty: # fill the board
+        for i in range(len(wordDict)):
+            game.insert_word(locDict[i][0]+1, locDict[i][1]+1, wordDict[i])
+            # game.print_board()
         
-        cv2.rectangle(cp_warped, (wi*j, hi*i), (wi*(j+1), hi*(i+1)), (200, 50, 255), 1)
-        #cv2.putText(cp_warped, str(j+1), (wi*j, hi*i+20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 50, 50), 2)   
-        cv2.imshow('segmented', cp_warped)
-        cv2.waitKey(10)
-        #common.save_img(cp_warped, 'output2.jpg')
-        roi = cp_warped[hi*i:hi*(i+1), wi*j:wi*(j+1)]
+        for i in range(len(transposedWordDict)):
+            game._transpose()
+            game.insert_word(transposedLocDict[i][0]+1, transposedLocDict[i][1]+1, transposedWordDict[i])
+            # game.print_board()
+            game._transpose()
+
+    game.print_board()
+
+    if empty:
+        game.get_start_move(word_rack)
+    else:
+        game.get_best_move(word_rack)
+    
+    if game.best_word == "":
+        print("No words found.")
+    else:
+        print("Best play:", game.best_word, "for", game.word_score_dict[game.best_word], "points.")
+    game.print_board()
 
 
-        # roi = cv2.resize(roi, (wi*2, hi*2))
-        # gray = cv2.cvtColor(roi, cv2.COLOR_RGB2GRAY)
-        # gray, img_bin = cv2.threshold(gray,128,255,cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        # gray = cv2.bitwise_not(cv2.bitwise_not(img_bin))
-        # kernel = np.ones((2, 1), np.uint8)
-        # roi = cv2.erode(gray, kernel, iterations=1)
-        # roi = cv2.dilate(roi, kernel, iterations=1)
+def set_and_transform(img):
+    pts = find_corners.find_corners(img)
+    img_wrect = img.copy()
+    img_wrect = helper.draw_rect(img, pts)
+
+    img_string = 'image'
+
+    cv2.imshow(img_string, img_wrect)
+
+    #drag corner for the user (GUI)
+    helper.drag_corners(img, img_wrect, img_string, pts)
+    while (True):
+        k = cv2.waitKey(10)
+        if k == 32:
+            break
+
+    print("Rect Done [X]")
+
+    #pts = np.asarray(config.global_coord, dtype = "float32")
+    warped = helper.four_point_transform(img, pts) # Their code
+
+    warp_h, warp_w, _ = warped.shape
+
+    #return warped height, warped weight and warped image itself.
+    return warp_h, warp_w, warped
+
+
+
+def divide_to_tiles(warp_h, warp_w, warped):
+    #calculate each cell's dimension on 15x15 board
+    wi = math.ceil(warp_w/15)
+    hi = math.ceil(warp_h/15)
+    print("warp dimensions: ", warped.shape)
+
+    cp_warped = warped.copy()
+    max_dim = max(wi, hi)
+    cp_warped = cv2.resize(cp_warped, (max_dim*15, max_dim*15))
+    cv2.imshow("warp", cp_warped)
+    print("warp dimensions: ", cp_warped.shape)
+    print("(B)")
+    print("[Press [space] to continue]")
+
+    while (True):
+        k = cv2.waitKey(10)
+        if k == 32:
+            cv2.destroyWindow("warp")
+            break
+
+    cp_warped = warped.copy()
+    cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
+
+    return cp_warped, wi, hi
+
+
+def detect_and_output(cp_warped, wi, hi, charar):
+    print("Loading letter recognition...")
+    for i in range(15):
+        #print("i: ", i)
+        for j in range(15):
+
+            catch = False
+            
+            cv2.rectangle(cp_warped, (wi*j, hi*i), (wi*(j+1), hi*(i+1)), (200, 50, 255), 1)
+            cv2.imshow('segmented', cp_warped)
+            cv2.waitKey(10)
+            roi = cp_warped[hi*i:hi*(i+1), wi*j:wi*(j+1)]
+    
+            char, score_pred = helper.get_prediction(roi, model)
+
+            if char == " ":
+                charar[i][j] = ""
+            else:
+                charar[i][j] = char
+
+            score_arr[i][j] = round(score_pred[0].item(), 4)
+
+        #print(charar[i])
+    
+    return charar
+
+def fix_input(charar):
+    cont = True
+    pattern = "[a-z]"
+    while cont:
+        print("Here is your processed board. ")
+        helper.print_board(charar)
+        y_n = input("Does this look correct? (Y/N)")
+        if y_n.upper() == "Y":
+            print("We will now return the most optimal gameplay for you.")
+            cont = False
+        elif y_n.upper() == "N":
+            x_coord = 0
+            while not int(x_coord) in range(1,16):
+                x_coord= input("Please enter the x_coordinate of the tile you want to fix (0-15): ")
+            y_coord = 0
+            while not int(y_coord) in range(1,16):
+                y_coord= input("Please enter the y_coordinate of the tile you want to fix (0-15): ")
+            letter = "aasdf"
+            while re.findall(pattern, letter) or len(letter) > 1:
+                letter = input("Please enter the right letter you want to fix it to: (A-Z)")
+
+            charar[int(y_coord) - 1][int(x_coord) - 1] = letter
+
+    return charar
+
+def process_input(charar):
+    for i in range(15):
+        for j in range(15):
+            if charar[i][j] == "E":
+                # print(charar[i][j])
+                charar[i][j] == "Z"
+    return charar
+
+def insert_wordrack(word_rack):
+    print("In UPPERCASE, please enter letters on your word rack.")
+    pattern = "[a-z]"
+    i = 0
+    while i != 7:
+        letter = input("Please enter your letter: ")
+        if re.findall(pattern, letter) or len(letter) > 1:
+            print("wrong shit my guy, enter again")
+        else:
+            word_rack.append(letter)
+            i += 1
+
+    return word_rack
+
+
+if __name__ == '__main__':
+    
+    #Read input
+    pic = 'hello.jpeg'
+    img = cv2.imread(pic)
+
+    #load up letter detection model
+    model = Network() 
+    state_dict = torch.load("letter_model_state.sav", map_location=torch.device('cpu'))
+    model.load_state_dict(state_dict)
+
+    #load up the scrabble words data
+    words_dict = open("lexicon/scrabble_words_complete.pickle", "rb")
+    root = pickle.load(words_dict)
+    words_dict.close()
+
+    #declare container for detected board
+    charar = [[0 for x in range(15)]for y in range(15)]
+    score_arr = [[0 for x in range(15)]for y in range(15)]
         
-        
-        char, score_pred = helper.get_prediction(roi, model)
-        #score_pred = helper.get_prediction(roi, model)[1][0]
+    warp_h, warp_w, warped = set_and_transform(img)
+    cp_warped, wi, hi = divide_to_tiles(warp_h, warp_w, warped)
 
-        # letter_config = '--psm 10 --oem 3 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVXWYZ'
-        
-        # db = pytesseract.image_to_data(roi, lang='eng', config=letter_config, output_type=Output.DICT)
-        
+    charar = detect_and_output(cp_warped, wi, hi, charar)
+    
+    charar1 = fix_input(charar)
+    charar2 = process_input(charar1)
 
-        # char = '_'
-        # try:
-        #     char = db['text'][4]
-        # except:
-        #     char = '_'
+    # for i in range(15):
+    #     print(score_arr[i])
+    # print("mean: ", round(np.mean(np.asarray(score_arr)), 5))
 
-        charar[i][j] = char
-        score_arr[i][j] = round(score_pred[0].item(), 4)
-        #print(char)
-        # if (i == 0 and j ==  8):
-        #     print(db['text'])
-        #     plt.imshow(roi)
-        #     plt.show()
-        # if (i == 0 and j ==  2):
-        #     print(db['text'][4])
-        #     plt.imshow(roi)
-        #     plt.show()
-        # if (i == 0 and j == 3):
-        #     print(db['text'][4])
-        #     plt.imshow(roi)
-        #     plt.show()
-    print(charar[i])
+    word_rack = []
+    user_words = insert_wordrack(word_rack)
 
+    print(charar1)
 
-        #    common.save_img(roi, 'roi.jpg')
-for i in range(15):
-    print(score_arr[i])
-print("mean: ", round(np.mean(np.asarray(score_arr)), 5))
-#print(charar)
+    best_move(charar2, word_rack, root)
 

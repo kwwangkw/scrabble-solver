@@ -166,3 +166,18 @@ def mouse_handler(event, x, y, flags, data, img_in, img_wrect_in, pts_in):
 def drag_corners(img_in, img_wrect_in, img_string, pts_in):
     cv2.setMouseCallback(img_string, lambda *x: mouse_handler(*x, img_in, img_wrect_in, pts_in))
     cv2.waitKey(0)
+
+def print_board(board):
+    print("    ", end="")
+    [print(str(num).zfill(2), end=" ") for num in range(1, 16)]
+    print()
+    for i, row in enumerate(board):
+        if i != 15:
+            print(str(i + 1).zfill(2), end="  ")
+        for x in row:
+            if x == "":
+                print("_", end="  ")
+            else:
+                print(x, end="  ")
+        print()
+    print()
