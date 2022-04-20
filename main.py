@@ -115,6 +115,10 @@ y_bot = 0
 img_string = 'image'
 pts =  np.zeros((4, 2), dtype = "float32")
 
+model = Network() 
+state_dict = torch.load("letter_model_state.sav", map_location=torch.device('cpu'))
+model.load_state_dict(state_dict)
+
 pts = find_corners.find_corners(img)
 img_wrect = img.copy()
 img_wrect = helper.draw_rect(img, pts)
@@ -140,7 +144,7 @@ print("Loading letter recognition...")
 
 wi = math.ceil(warp_w/15)
 hi = math.ceil(warp_h/15)
-print(str(wi) + ", ", str(hi))
+#print(str(wi) + ", ", str(hi))
 
 charar = np.chararray((15, 15))
 print("warp dimensions: ", warped.shape)
@@ -166,9 +170,7 @@ score_arr = [[0 for x in range(15)]for y in range(15)]
 cp_warped = warped.copy()
 cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
 #model = pickle.load(open('letter_model_state.sav', 'rb'))
-model = Network() 
-state_dict = torch.load("letter_model_state.sav", map_location=torch.device('cpu'))
-model.load_state_dict(state_dict)
+
 
 for i in range(15):
     #print("i: ", i)
@@ -228,6 +230,6 @@ for i in range(15):
         #    common.save_img(roi, 'roi.jpg')
 for i in range(15):
     print(score_arr[i])
-print("mean: ", np.mean(np.asarray(score_arr)))
+print("mean: ", round(np.mean(np.asarray(score_arr)), 5))
 #print(charar)
 
