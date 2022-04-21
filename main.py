@@ -288,7 +288,7 @@ def process_input(charar):
     return charar
 
 def insert_wordrack(word_rack):
-    print("In UPPERCASE, please enter letters on your word rack.")
+    print("Please enter letters on your word rack.")
     pattern = "[a-z]"
     i = 0
     while i != 7:
@@ -296,7 +296,7 @@ def insert_wordrack(word_rack):
         if re.findall(pattern, letter) or len(letter) > 1:
             print("wrong shit my guy, enter again")
         else:
-            word_rack.append(letter)
+            word_rack.append(letter.upper())
             i += 1
 
     return word_rack
