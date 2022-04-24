@@ -29,9 +29,9 @@ graph LR
 A[User input] -- Homography transform & corner detection --> B(15x15 squares )
 B --> D((Letter detection & board processing))
 C(crop.py and warp.py)-- neural network model --> D
-D--Fix board to be 100% accurate-->F(Correct board)
+D--Fix board to be 100% accurate-->F(Correct board & wordrack)
 E(wordrack input) -->F
-F --Optimal gameplay--> G{Strategy & board output}
+F --Gameplay algorithm--> G{Strategy & board output}
 ```
 
 ### Backups
