@@ -2,7 +2,7 @@
 
 Scrabble score maximization from image input using corner keypoint warping and neural network letter recognition
 
-Authors:
+### Authors
 
  - Wei Jie Lee (lweijie@umich.edu)
  - Jaehyun Shim (jaeday@umich.edu)
@@ -33,3 +33,7 @@ D--Fix board to be 100% accurate-->F(Correct board)
 E(wordrack input) -->F
 F --Optimal gameplay--> G{Strategy & board output}
 ```
+
+### Backups
+
+Where some of our old works are.
