@@ -222,14 +222,16 @@ def divide_to_tiles(warp_h, warp_w, warped):
             cv2.destroyWindow("warp")
             break
 
-    cp_warped = warped.copy()
-    cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
+    #cp_warped = warped.copy()
+    #cp_warped = cv2.resize(cp_warped, (wi*15, hi*15))
 
-    return cp_warped, wi, hi
+    return cp_warped, max_dim, max_dim
 
 
-def detect_and_output(cp_warped, wi, hi, charar):
+def detect_and_output(cp_warped, wi, hi, charar, score_arr):
     print("Loading letter recognition...")
+    score_charonly = []
+    char_count = 0
     for i in range(15):
         #print("i: ", i)
         for j in range(15):
@@ -247,12 +249,17 @@ def detect_and_output(cp_warped, wi, hi, charar):
                 charar[i][j] = ""
             else:
                 charar[i][j] = char
+                score_charonly.append(round(score_pred[0].item(), 2))
+                char_count = char_count + 1
 
-            score_arr[i][j] = round(score_pred[0].item(), 4)
+            score_arr[i][j] = round(score_pred[0].item(), 2)
 
         #print(charar[i])
-    
-    return charar
+    for x in range(15):
+        print(score_arr[x])
+    print("All tile mean score: ", np.mean(np.asarray(score_arr)))
+    print("Only char detected - mean score: ", np.mean(np.asarray(score_charonly)))
+    return charar, score_arr
 
 def fix_input(charar):
     cont = True
@@ -305,7 +312,7 @@ def insert_wordrack(word_rack):
 if __name__ == '__main__':
     
     #Read input
-    pic = 'hello.jpeg'
+    pic = 'presentaiton.jpg'
     img = cv2.imread(pic)
 
     #load up letter detection model
@@ -325,7 +332,7 @@ if __name__ == '__main__':
     warp_h, warp_w, warped = set_and_transform(img)
     cp_warped, wi, hi = divide_to_tiles(warp_h, warp_w, warped)
 
-    charar = detect_and_output(cp_warped, wi, hi, charar)
+    charar, score_arr = detect_and_output(cp_warped, wi, hi, charar, score_arr)
     
     charar1 = fix_input(charar)
     charar2 = process_input(charar1)
