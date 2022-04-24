@@ -5,16 +5,16 @@ import common
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import helper
+import helper as helper
 import config
-import find_corners
+from transformation.find_corners import find_corners
 import torch
 from torch import nn
 from torchvision import transforms
 from PIL import Image
 import pickle
-from dawg import *
-from board import ScrabbleBoard
+from solver.dawg import *
+from solver.board import ScrabbleBoard
 import sys
 import random
 import re
@@ -175,7 +175,7 @@ def best_move(board, word_rack, root):
 
 
 def set_and_transform(img):
-    pts = find_corners.find_corners(img)
+    pts = find_corners(img)
     img_wrect = img.copy()
     img_wrect = helper.draw_rect(img, pts)
 
@@ -274,10 +274,10 @@ def fix_input(charar):
         elif y_n.upper() == "N":
             x_coord = 0
             while not int(x_coord) in range(1,16):
-                x_coord= input("Please enter the x_coordinate of the tile you want to fix (0-15): ")
+                x_coord= input("Please enter the x_coordinate of the tile you want to fix (1-15): ")
             y_coord = 0
             while not int(y_coord) in range(1,16):
-                y_coord= input("Please enter the y_coordinate of the tile you want to fix (0-15): ")
+                y_coord= input("Please enter the y_coordinate of the tile you want to fix (1-15): ")
             letter = "aasdf"
             while re.findall(pattern, letter) or len(letter) > 1:
                 letter = input("Please enter the right letter you want to fix it to: (A-Z)")
@@ -286,22 +286,15 @@ def fix_input(charar):
 
     return charar
 
-def process_input(charar):
-    for i in range(15):
-        for j in range(15):
-            if charar[i][j] == "E":
-                # print(charar[i][j])
-                charar[i][j] == "Z"
-    return charar
-
 def insert_wordrack(word_rack):
-    print("Please enter letters on your word rack.")
+    num = input("Please enter the number of tiles on your hand: ")
     pattern = "[a-z]"
+    num = int(num)
     i = 0
-    while i != 7:
-        letter = input("Please enter your letter: ")
+    while i != num:
+        letter = input("Please enter your letter on your hand: ")
         if re.findall(pattern, letter) or len(letter) > 1:
-            print("wrong shit my guy, enter again")
+            print("Please enter an UPPERCASE letter (A-Z):")
         else:
             word_rack.append(letter.upper())
             i += 1
@@ -312,12 +305,12 @@ def insert_wordrack(word_rack):
 if __name__ == '__main__':
     
     #Read input
-    pic = 'presentaiton.jpg'
+    pic = './sample_inputs/presentaiton.jpg'
     img = cv2.imread(pic)
 
     #load up letter detection model
     model = Network() 
-    state_dict = torch.load("letter_model_state.sav", map_location=torch.device('cpu'))
+    state_dict = torch.load("letter_detection/letter_model_state.sav", map_location=torch.device('cpu'))
     model.load_state_dict(state_dict)
 
     #load up the scrabble words data
@@ -335,7 +328,6 @@ if __name__ == '__main__':
     charar, score_arr = detect_and_output(cp_warped, wi, hi, charar, score_arr)
     
     charar1 = fix_input(charar)
-    charar2 = process_input(charar1)
 
     # for i in range(15):
     #     print(score_arr[i])
@@ -346,5 +338,5 @@ if __name__ == '__main__':
 
     print(charar1)
 
-    best_move(charar2, word_rack, root)
+    best_move(charar1, word_rack, root)
 

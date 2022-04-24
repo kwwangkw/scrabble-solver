@@ -1,4 +1,4 @@
-from dawg import *
+import solver.dawg
 import regex as re
 import random
 import copy

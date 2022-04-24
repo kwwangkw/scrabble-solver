@@ -5,7 +5,7 @@ import common
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import helper
+import helper as helper
 
 #img = cv2.imread('coffee_sample.png')
 pic = 'hello.jpeg'

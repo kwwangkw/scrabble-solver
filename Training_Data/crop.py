@@ -5,7 +5,7 @@ import common
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import helper
+import helper as helper
 import config
 import pathlib
 

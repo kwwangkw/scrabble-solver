@@ -5,10 +5,10 @@ import common
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import helper
+import main.helper as helper
 import config
 import pathlib
-import find_corners
+import find_corners as find_corners
 
 #img = cv2.imread('coffee_sample.png')
 
