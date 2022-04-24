@@ -27,7 +27,7 @@ Below is a simple workflow of our program:
 ```mermaid
 graph LR
 A[User input] -- Homography transform & corner detection --> B(15x15 squares )
-B --> D{Letter detection & board processing}
+B --> D((Letter detection & board processing))
 C(crop.py and warp.py)-- neural network model --> D
 D--Fix board to be 100% accurate-->F(Correct board)
 E(wordrack input) -->F
