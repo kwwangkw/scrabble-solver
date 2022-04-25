@@ -34,6 +34,9 @@ E(wordrack input) -->F
 F --Gameplay algorithm--> G{Strategy & board output}
 ```
 
+### Visuals
+<img width="862" alt="image" src="https://user-images.githubusercontent.com/43936507/165176898-0c13dfaa-d2e2-445b-8f59-6dd527fd26de.png">
+
 ### Backups
 
 Where some of our old works are.
