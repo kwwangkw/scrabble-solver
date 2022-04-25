@@ -291,18 +291,18 @@ def insert_wordrack(word_rack):
     numpattern = "^[0-9]*$"
     while not re.findall(numpattern, num):
         num = input("Please enter a valid number for the number of tiles on your hand:")
-    pattern = "[a-z]"
+    pattern = "[a-zA-Z]"
     num = int(num)
     i = 0
     while i != num:
         letter = input("Please enter a letter in your hand: ")
-        if re.findall(pattern, letter.upper()) or len(letter) > 1:
+        if (len(re.findall(pattern, letter.upper())) == 0) or len(letter) > 1:
             print("Please enter a letter (A-Z).")
         else:
             word_rack.append(letter.upper())
             i += 1
 
-
+    print()
     return word_rack
 
 
@@ -341,6 +341,9 @@ if __name__ == '__main__':
     user_words = insert_wordrack(word_rack)
 
     #print(charar1)
+
+    print("Previous: ")
+    print()
 
     best_move(charar1, word_rack, root)
 
