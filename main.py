@@ -312,6 +312,8 @@ def insert_wordrack(word_rack):
 if __name__ == '__main__':
     
     #Read input
+    # presentaiton
+    # oddtest
     pic = 'presentaiton.jpg'
     img = cv2.imread(pic)
 
