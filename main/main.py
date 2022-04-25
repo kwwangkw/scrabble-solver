@@ -115,8 +115,8 @@ def best_move(board, word_rack, root):
             elif currChar == "":
                 currWord = ""
                 currChar = ""
-    print(wordDict)
-    print(locDict)
+    #print(wordDict)
+    #print(locDict)
 
     transposedWordDict = []
     transposedLocDict = []
@@ -140,8 +140,8 @@ def best_move(board, word_rack, root):
                 currWord = ""
                 currChar = ""
     
-    print(transposedWordDict)
-    print(transposedLocDict)
+    #print(transposedWordDict)
+    #print(transposedLocDict)
 
     empty = True
     for row in board:
@@ -255,10 +255,10 @@ def detect_and_output(cp_warped, wi, hi, charar, score_arr):
             score_arr[i][j] = round(score_pred[0].item(), 2)
 
         #print(charar[i])
-    for x in range(15):
-        print(score_arr[x])
-    print("All tile mean score: ", np.mean(np.asarray(score_arr)))
-    print("Only char detected - mean score: ", np.mean(np.asarray(score_charonly)))
+    #for x in range(15):
+        #print(score_arr[x])
+    #print("All tile mean score: ", np.mean(np.asarray(score_arr)))
+    #print("Only char detected - mean score: ", np.mean(np.asarray(score_charonly)))
     return charar, score_arr
 
 def fix_input(charar):
@@ -288,16 +288,20 @@ def fix_input(charar):
 
 def insert_wordrack(word_rack):
     num = input("Please enter the number of tiles on your hand: ")
+    numpattern = "^[0-9]*$"
+    while not re.findall(numpattern, num):
+        num = input("Please enter a valid number for the number of tiles on your hand:")
     pattern = "[a-z]"
     num = int(num)
     i = 0
     while i != num:
-        letter = input("Please enter your letter on your hand: ")
-        if re.findall(pattern, letter) or len(letter) > 1:
-            print("Please enter an UPPERCASE letter (A-Z):")
+        letter = input("Please enter a letter in your hand: ")
+        if re.findall(pattern, letter.upper()) or len(letter) > 1:
+            print("Please enter a letter (A-Z).")
         else:
             word_rack.append(letter.upper())
             i += 1
+
 
     return word_rack
 
@@ -336,7 +340,7 @@ if __name__ == '__main__':
     word_rack = []
     user_words = insert_wordrack(word_rack)
 
-    print(charar1)
+    #print(charar1)
 
     best_move(charar1, word_rack, root)
 
