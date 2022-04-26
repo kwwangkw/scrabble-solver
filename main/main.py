@@ -342,8 +342,8 @@ if __name__ == '__main__':
 
     #print(charar1)
 
-    print("Previous: ")
-    print()
+    print("Current Board: ")
+    # print()
 
     best_move(charar1, word_rack, root)
 
